@@ -11,11 +11,7 @@ class QLock : public Watchy {
         display.drawBitmap(0, 0, epd_bitmap_qlock, 200, 200, GxEPD_WHITE,
                            GxEPD_BLACK);
 
-        for (int i = 0; i < 11; i++) {
-            bitmap[i].reset();
-        }
-
-        setAlwaysGreyAreas();
+        reset();
         setHours();
         setMinutes();
         draw();
@@ -24,26 +20,26 @@ class QLock : public Watchy {
    private:
     std::bitset<11> bitmap[10];
 
-    void setAlwaysGreyAreas() {
-        bitmap[0] |= 0b00100111111;
-        bitmap[1] |= 0b01000000011;
-        bitmap[2] |= 0b00000000001;
-        bitmap[3] |= 0b00001000100;
-        bitmap[4] |= 0b00001110000;
-        bitmap[9] |= 0b00011000000;
+    void reset() {
+        bitmap[0] = 0b00100111111;
+        bitmap[1] = 0b01000000011;
+        bitmap[2] = 0b00000000001;
+        bitmap[3] = 0b00001000100;
+        bitmap[4] = 0b00001111111;
+        for (int16_t i = 5; i < 9; i++) {
+            bitmap[i] = bitmap[i].set();
+        }
+        bitmap[9] = 0b11111000000;
     }
 
     void setHours() {
-        bitmap[4] |= 0b00000001111;
-        bitmap[5].set();
-        bitmap[6].set();
-        bitmap[7].set();
-        bitmap[8].set();
-        bitmap[9] |= 0b11100000000;
+        auto hr = currentTime.Hour % 12;
 
-        auto hr = currentTime.Hour;
+        if (hr == 0) {
+            hr = 12;
+        }
 
-        if (currentTime.Minute > 30) {
+        if (currentTime.Minute > 35) {
             hr++;
         }
 
@@ -89,12 +85,17 @@ class QLock : public Watchy {
 
     void setMinutes() {
         auto m = currentTime.Minute;
+        auto diff = m - m % 5;
 
-        if ((m - m % 5) != 0) {
+        if (diff != 0) {
             bitmap[9] |= 0b00000111111;
         }
 
-        switch (m - m % 5) {
+        if (diff >= 35) {
+            bitmap[4] |= 0b11110000000;
+        }
+
+        switch (diff) {
             case 0:
                 bitmap[1].set();
                 bitmap[2].set();
@@ -140,34 +141,29 @@ class QLock : public Watchy {
             case 35:
                 bitmap[1].set();
                 bitmap[3] |= 0b11110111000;
-                bitmap[4] |= 0b11110000000;
                 break;
 
             case 40:
                 bitmap[1].set();
                 bitmap[2] |= 0b00000011110;
                 bitmap[3] |= 0b11110111000;
-                bitmap[4] |= 0b11110000000;
                 break;
 
             case 45:
                 bitmap[2].set();
                 bitmap[3] |= 0b11111111100;
-                bitmap[4] |= 0b11110000000;
                 break;
 
             case 50:
                 bitmap[1].set();
                 bitmap[2].set();
                 bitmap[3] |= 0b11110000000;
-                bitmap[4] |= 0b11110000000;
                 break;
 
             case 55:
                 bitmap[1].set();
                 bitmap[2] |= 0b11111100000;
                 bitmap[3] |= 0b11110111000;
-                bitmap[4] |= 0b11110000000;
                 break;
         }
 
@@ -176,7 +172,7 @@ class QLock : public Watchy {
                 display.drawBitmap(0, 0, epd_bitmap_chequerboard, 16, 18,
                                    GxEPD_WHITE);
             case 1:
-                display.drawBitmap(200 - 12, 0, epd_bitmap_chequerboard, 16, 18,
+                display.drawBitmap(200 - 11, 0, epd_bitmap_chequerboard, 16, 18,
                                    GxEPD_WHITE);
             case 2:
                 display.drawBitmap(200 - 12, 200 - 10, epd_bitmap_chequerboard,
