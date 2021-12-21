@@ -25,9 +25,11 @@ class QLock : public Watchy {
         bitmap[1] = 0b01000000011;
         bitmap[2] = 0b00000000001;
         bitmap[3] = 0b00001000100;
-        for (int16_t i = 4; i < 10; i++) {
+        bitmap[4] = 0b00001111111;
+        for (int16_t i = 5; i < 9; i++) {
             bitmap[i] = bitmap[i].set();
         }
+        bitmap[9] = 0b11111000000;
     }
 
     void setHours() {
@@ -86,11 +88,11 @@ class QLock : public Watchy {
         auto diff = m - m % 5;
 
         if (diff != 0) {
-            bitmap[9] ^= 0b00000111111;
+            bitmap[9] |= 0b00000111111;
         }
 
         if (diff >= 35) {
-            bitmap[4] ^= 0b11110000000;
+            bitmap[4] |= 0b11110000000;
         }
 
         switch (diff) {
@@ -98,7 +100,7 @@ class QLock : public Watchy {
                 bitmap[1].set();
                 bitmap[2].set();
                 bitmap[3].set();
-                bitmap[4] ^= 0b11110000000;
+                bitmap[4] |= 0b11110000000;
                 break;
 
             case 5:
