@@ -24,11 +24,6 @@ class QLock : public Watchy {
    private:
     std::bitset<11> bitmap[10];
 
-    void greyOut(int16_t x, int16_t y) {
-        display.drawBitmap(12 + x * 16, 10 + y * 18, epd_bitmap_chequerboard,
-                           16, 18, GxEPD_WHITE);
-    }
-
     void setAlwaysGreyAreas() {
         bitmap[0] |= 0b00100111111;
         bitmap[1] |= 0b01000000011;
